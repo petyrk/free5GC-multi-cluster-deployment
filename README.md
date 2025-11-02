@@ -792,7 +792,7 @@ Access from Ubuntu desktop: `http://<openspeedtest-service-ip>`
 ![Speed Test](./images/speedtest.png)
 *Running speed test through 5G user plane*
 
-### Traffic Flow Visualization
+### HTTP Traffic Flow Visualization
 ```mermaid
 ---
 config:
