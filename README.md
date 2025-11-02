@@ -625,7 +625,7 @@ watch -n 1 'ip -s link show upfgtp'
 
 ---
 
-## Advanced Use Cases
+## Advanced Test Case
 
 ### SOCKS5 Sidecar Proxy Pattern
 
