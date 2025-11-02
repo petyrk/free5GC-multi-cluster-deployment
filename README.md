@@ -374,18 +374,6 @@ sudo systemctl start promisc-ifaces
 systemctl status promisc-ifaces
 ```
 
-#### NetworkAttachmentDefinitions NADs
-
-Example NAD for UPF:
-```yaml
-# See config files in repository
-```
-
-![UPF NAD Configuration](./images/upf-nad.png)
-*UPF NetworkAttachmentDefinition showing N3 and N4 interfaces*
-
----
-
 ### Control Plane Deployment
 
 Deploy on **VM2 (Control Plane cluster)**:
@@ -420,10 +408,6 @@ kubectl get pods -n free5gc
 kubectl get svc -n free5gc
 ```
 
-![Control Plane Pods](./images/control-plane-pods.png)
-*All control plane network functions running*
-
----
 
 ### User Plane Deployment
 
@@ -625,7 +609,7 @@ kubectl exec -it -n ueran <ue-pod-name> -- bash
 ping -I uesimtun0 8.8.8.8
 ```
 
-![Ping Test](./images/ueconnectivitylogs.png)
+![Ping Test](./images/ueconectivitylogs.png)
 *Successful ping through 5G network*
 
 #### Verify GTP-U Traffic
@@ -636,7 +620,7 @@ kubectl exec -it -n free5gc <upf-pod-name> -- bash
 watch -n 1 'ip -s link show upfgtp'
 ```
 
-![GTP Counters](./images/upfgtp-stats.png)
+![GTP Counters](./images/upfgtpstats.png)
 *RX/TX counters incrementing, confirming tunnel traffic*
 
 ---
@@ -767,7 +751,7 @@ kubectl apply -f ubuntudesktop-vnc.yaml  # on UERANSIM cluster
 5. Port: `1080`
 6. Select **SOCKS v5**
 
-![Firefox Proxy Config](./images/proxy-set.png)
+![Firefox Proxy Config](./images/proxyset.png)
 *Configuring SOCKS5 proxy in Firefox*
 
 ### Speed Test via 5G Network
@@ -850,102 +834,6 @@ kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
 
 ---
 
-## Lessons Learned
-
-### Kubernetes Patterns Mastery
-
-**Multi-Cluster Architecture**
-- Understanding when to separate workloads across clusters
-- Cross-cluster service discovery challenges (it's hard!)
-- Independent scaling strategies for control vs. user plane
-
-**Sidecar Containers**
-- Shared network namespace enables powerful patterns
-- Use cases beyond service mesh (proxies, monitoring agents)
-- Resource allocation considerations with multiple containers
-
-**StatefulSets vs. Deployments**
-- When stable network identities matter (MongoDB, stateful NFs)
-- PVC lifecycle management
-- Headless services for direct pod-to-pod communication
-
-### Networking Deep Dive
-
-**Layer 2 vs. Layer 3**
-- MACVLAN operates at L2, requires broadcast domain adjacency
-- Kubernetes networking is fundamentally L3 (IP routing)
-- Mismatch causes operational complexity
-
-**CNI Plugin Ecosystem**
-- Calico/Flannel: Great for standard microservices
-- Multus: Necessary evil for multi-interface requirements
-- MACVLAN: VNF-era solution, not truly cloud-native
-
-**Protocol Complexities**
-- SCTP still used in telecom, requires kernel support
-- GTP-U tunneling adds ~8% overhead
-- PFCP enables dynamic user plane control
-
-### Operational Challenges
-
-| Challenge | Impact | Solution |
-|-----------|--------|----------|
-| **Promiscuous Mode** | Doesn't persist across reboots | Systemd service |
-| **Static IP Management** | Manual tracking, error-prone | IPAM needed (future: Cilium) |
-| **Limited Observability** | MACVLAN bypasses service mesh | Manual tcpdump, no Istio/Linkerd |
-| **Security Gaps** | NetworkPolicies don't apply | Back to iptables rules |
-| **PVC Binding** | MongoDB startup delays | Pre-create PVs, StorageClass config |
-| **Kernel Dependencies** | gtp5g breaks on updates | Automated rebuild scripts |
-
-### The Telecom Reality
-
-**Current State:**
-- Industry transitioning from VNF → CNF
-- Pods used as VMs, Kubernetes as orchestrator
-- Missing: True cloud-native benefits (auto-scaling, self-healing, observability)
-
-**Why We're Not There Yet:**
-- 3GPP protocols designed for hardware
-- Latency requirements favor kernel bypass (DPDK, SR-IOV)
-- Operators comfortable with VNF operational model
-
----
-
-## Next Steps
-
-### Phase 1 GitOps & CI/CD ✅ (In Progress)
-
-- **Argo CD** for automated multi-cluster deployments
-- **GitOps practices** for configuration management
-- **Prometheus & Grafana** for monitoring and alerting
-
-### Phase 2 True Cloud-Native Networking 🚀 (Planned)
-
-**Cilium with eBPF**
-- Replace Multus + MACVLAN with eBPF-based networking
-- Built-in IPAM (no more manual IP tracking!)
-- Full observability with Hubble (goodbye tcpdump!)
-- NetworkPolicy enforcement at kernel level
-
-**BGP for Inter-Cluster Routing**
-- Eliminate L2 adjacency requirements
-- Scalable routing between clusters
-- Standard protocol compatible with existing infrastructure
-
-**SRv6 (Segment Routing over IPv6)**
-- Traffic engineering and service function chaining
-- Network slicing with QoS guarantees
-- Per-flow routing policies
-
-**Expected Improvements:**
-- ✅ Zero MACVLAN configuration
-- ✅ Zero promiscuous mode requirements
-- ✅ Automatic IP address management
-- ✅ Full observability with Hubble UI
-- ✅ NetworkPolicy enforcement across all interfaces
-- ✅ Simplified operations and troubleshooting
-
----
 
 ## Resources
 
