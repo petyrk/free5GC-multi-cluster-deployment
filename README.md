@@ -246,7 +246,109 @@ kubectl get nodes
 
 Multus acts as a **meta-plugin**, allowing pods to attach multiple network interfaces by chaining CNI plugins.
 ```mermaid
-[Multus architecture diagram showing pod → CNI layer → host network - to be added]
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: '#fff'
+    primaryTextColor: '#1a1a1a'
+    primaryBorderColor: '#2563eb'
+    lineColor: '#475569'
+    secondaryColor: '#f1f5f9'
+    tertiaryColor: '#fef3c7'
+---
+flowchart TB
+    subgraph KubePod["🫛 Kubernetes Pod with Multiple Interfaces"]
+        direction LR
+        eth0["eth0<br/>(Default Interface)"]
+        n2["n2/net1<br/>(MACVLAN)"]
+        n3["n3/net2<br/>(MACVLAN)"]
+    end
+    
+    subgraph MultusLayer["🔀 Multus Meta-CNI Plugin"]
+        direction LR
+        Multus["Multus CNI<br/>(Orchestrator)"]
+        NAD_N2["NAD: n2-network<br/>(MACVLAN Config)"]
+        NAD_N3["NAD: n3-network<br/>(MACVLAN Config)"]
+    end
+    
+    subgraph CNILayer["🔌 CNI Plugin Layer"]
+        direction LR
+        CalicoCNI["Calico CNI<br/>(Primary/Default)"]
+        MACVLAN_N2["MACVLAN CNI<br/>(Secondary)"]
+        MACVLAN_N3["MACVLAN CNI<br/>(Secondary)"]
+    end
+    
+    subgraph HostNetwork["💻 Physical Host Network"]
+        direction LR
+        CalicoRouting["Calico<br/>(VxLAN Overlay)"]
+        HostEth1["eth1<br/>(N3 Traffic)"]
+        HostEth2["eth2<br/>(N2 Traffic)"]
+    end
+    
+    %% Pod to Multus connections
+    eth0 -.->|"Default"| Multus
+    n2 -.->|"net1"| Multus
+    n3 -.->|"net2"| Multus
+    
+    %% Multus delegation
+    Multus ==>|"Delegates<br/>Default Network"| CalicoCNI
+    Multus -->|"Reads NAD"| NAD_N2
+    Multus -->|"Reads NAD"| NAD_N3
+    
+    %% NAD to CNI
+    NAD_N2 ==>|"Invokes"| MACVLAN_N2
+    NAD_N3 ==>|"Invokes"| MACVLAN_N3
+    
+    %% CNI to Host
+    CalicoCNI ==>|"Overlay<br/>Network"| CalicoRouting
+    MACVLAN_N2 ==>|"Direct L2<br/>Access"| HostEth2
+    MACVLAN_N3 ==>|"Direct L2<br/>Access"| HostEth1
+    
+    %% Notes
+    Note1["💡 Multus enables attachment<br/>of multiple network interfaces<br/>to a single pod"]
+    Note2["📋 Network Attachment Definitions<br/>(NADs) define secondary networks<br/>via Kubernetes CRDs"]
+    Note3["🔗 MACVLAN provides direct<br/>hardware access bypassing<br/>overlay networking"]
+    
+    KubePod -.-> Note1
+    MultusLayer -.-> Note2
+    CNILayer -.-> Note3
+    
+    %% Styling
+    eth0:::defaultInterface
+    n2:::macvlanInterface
+    n3:::macvlanInterface
+    Multus:::multusStyle
+    NAD_N2:::nadStyle
+    NAD_N3:::nadStyle
+    CalicoCNI:::calicoStyle
+    MACVLAN_N2:::macvlanStyle
+    MACVLAN_N3:::macvlanStyle
+    CalicoRouting:::calicoRoutingStyle
+    HostEth1:::hostDataStyle
+    HostEth2:::hostDataStyle
+    KubePod:::podStyle
+    MultusLayer:::multusLayerStyle
+    CNILayer:::cniLayerStyle
+    HostNetwork:::hostStyle
+    Note1:::noteStyle
+    Note2:::noteStyle
+    Note3:::noteStyle
+    
+    classDef podStyle fill:#dbeafe,stroke:#2563eb,stroke-width:4px,color:#1e40af
+    classDef multusLayerStyle fill:#ede9fe,stroke:#7c3aed,stroke-width:4px,color:#5b21b6
+    classDef cniLayerStyle fill:#fef3c7,stroke:#d97706,stroke-width:4px,color:#92400e
+    classDef hostStyle fill:#f0fdf4,stroke:#16a34a,stroke-width:4px,color:#166534
+    classDef defaultInterface fill:#bfdbfe,stroke:#1d4ed8,stroke-width:3px,color:#1e3a8a
+    classDef macvlanInterface fill:#fbbf24,stroke:#d97706,stroke-width:3px,color:#92400e
+    classDef multusStyle fill:#c4b5fd,stroke:#7c3aed,stroke-width:4px,color:#5b21b6
+    classDef nadStyle fill:#ddd6fe,stroke:#8b5cf6,stroke-width:3px,stroke-dasharray: 5 5,color:#6d28d9
+    classDef calicoStyle fill:#93c5fd,stroke:#2563eb,stroke-width:3px,color:#1e40af
+    classDef macvlanStyle fill:#fcd34d,stroke:#f59e0b,stroke-width:3px,color:#b45309
+    classDef calicoRoutingStyle fill:#7dd3fc,stroke:#0284c7,stroke-width:3px,color:#075985
+    classDef hostDataStyle fill:#6ee7b7,stroke:#059669,stroke-width:3px,color:#065f46
+    classDef noteStyle fill:#fef9c3,stroke:#a16207,stroke-width:2px,stroke-dasharray: 5 5,color:#713f12
+
 ```
 
 #### Enable Promiscuous Mode
@@ -395,7 +497,62 @@ UERANSIM simulates:
 
 Understanding the 5G protocol stack is crucial for debugging:
 ```mermaid
-[Protocol sequence diagram: UE → gNB → AMF → SMF → UPF → Internet - to be added]
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'actorBkg': '#f8f9fa',
+    'actorBorder': '#0077ff',
+    'actorTextColor': '#000000',
+    'noteBkgColor': '#fef7d1',
+    'noteTextColor': '#111111',
+    'primaryColor': '#0077ff',
+    'primaryTextColor': '#ffffff',
+    'edgeLabelBackground': '#f1f1f1',
+    'fontSize': '14px',
+    'sequenceNumberColor': '#0077ff'
+  }
+}}%%
+sequenceDiagram
+    participant UE as 📱 UE<br/>(User Equipment)
+    participant gNB as 🗼 gNB<br/>(Base Station)
+    participant AMF as 🧭 AMF<br/>(Access & Mobility)
+    participant SMF as ⚙️ SMF<br/>(Session Mgmt)
+    participant UPF as 🚀 UPF<br/>(User Plane)
+    participant Internet as 🌐 Internet
+Note over UE,UPF: Registration Procedure
+UE->>gNB: Registration Request (NAS)
+gNB->>AMF: N2: NGAP (SCTP)<br/>Initial UE Message
+Note right of AMF: Authentication &<br/>Authorization
+AMF->>SMF: SBI: HTTP/2<br/>Service Authorization
+SMF-->>AMF: Authorization Response
+AMF->>gNB: N2: NGAP<br/>Initial Context Setup
+gNB->>UE: Registration Accept
+
+Note over UE,UPF: PDU Session Establishment
+UE->>gNB: PDU Session Establishment Request
+gNB->>AMF: N2: NGAP<br/>PDU Session Request
+AMF->>SMF: SBI: HTTP/2<br/>Create SM Context
+Note right of SMF: Select UPF &<br/>Allocate Resources
+SMF->>UPF: N4: PFCP<br/>Session Establishment Request
+UPF-->>SMF: N4: PFCP<br/>Session Establishment Response
+SMF-->>AMF: SM Context Created
+AMF->>gNB: N2: PDU Session Resource<br/>Setup Request
+
+Note over gNB,UPF: GTP-U Tunnel Setup
+gNB->>UPF: N3: GTP-U Tunnel Setup
+Note right of UPF: Tunnel Endpoint<br/>Created
+
+Note over UE,Internet: User Plane Data Transfer
+UE->>gNB: User Data
+gNB->>UPF: N3: GTP-U Encapsulated<br/>User Data
+UPF->>Internet: Decapsulated Data
+Note right of Internet: Internet Access
+Internet-->>UPF: Response Data
+UPF-->>gNB: N3: GTP-U Encapsulated<br/>Response
+gNB-->>UE: User Data
+
+Note over UE,UPF: Data flows through established GTP-U tunnel
+
 ```
 
 ### Key Protocols
@@ -498,7 +655,65 @@ watch -n 1 'ip -s link show upfgtp'
 
 This demonstrates how to route external client traffic through the 5G network using a sidecar container.
 ```mermaid
-[Sidecar pattern diagram - to be added]
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#fff"
+    primaryTextColor: "#1a1a1a"
+    primaryBorderColor: "#2563eb"
+    lineColor: "#475569"
+    secondaryColor: "#f1f5f9"
+    tertiaryColor: "#fef3c7"
+---
+flowchart TB
+    subgraph UEContainer["UERANSIM UE Container"]
+        UETun["uesimtun0<br/>10.60.0.1<br/>TUN Device"]
+    end
+    
+    subgraph ProxyContainer["SOCKS5 Proxy Sidecar"]
+        Proxy["SOCKS5 Proxy<br/>Listens on<br/>0.0.0.0:1080"]
+    end
+    
+    subgraph UEPod["🎯 UE Pod - Shared Network Namespace"]
+        direction LR
+        UEContainer
+        ProxyContainer
+    end
+    
+    subgraph UbuntuPod["💻 Ubuntu Desktop Pod"]
+         direction LR
+        Firefox["Firefox Browser<br/>SOCKS5 Proxy Config:<br/>ue-socks5:1080"]
+        TrafficNote["All traffic routes<br/>through SOCKS5 Proxy<br/>via UE container"]
+    end
+    
+    Service["🔌 ClusterIP Service<br/>ue-socks5:1080"]
+    
+    UEContainer <--> |"Shared<br/>Namespace"| ProxyContainer
+    UEPod <-. "Exposes SOCKS5" .-> Service
+    Service --> |"Proxy Connection"| UEPod
+    UbuntuPod --> |"HTTP/HTTPS Traffic"| Service
+    Firefox -.-> TrafficNote
+    
+    UETun:::tunStyle
+    Proxy:::proxyStyle
+    UEContainer:::ueContainerStyle
+    ProxyContainer:::proxyContainerStyle
+    Firefox:::firefoxStyle
+    TrafficNote:::noteStyle
+    UEPod:::uePodStyle
+    Service:::serviceStyle
+    UbuntuPod:::ubuntuPodStyle
+    
+    classDef uePodStyle fill:#dbeafe,stroke:#2563eb,stroke-width:4px,color:#1e40af
+    classDef ubuntuPodStyle fill:#fef3c7,stroke:#d97706,stroke-width:4px,color:#92400e
+    classDef ueContainerStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:3px,color:#075985
+    classDef proxyContainerStyle fill:#f0fdf4,stroke:#16a34a,stroke-width:3px,color:#166534
+    classDef serviceStyle fill:#f3e8ff,stroke:#9333ea,stroke-width:4px,color:#6b21a8
+    classDef tunStyle fill:#bfdbfe,stroke:#1d4ed8,stroke-width:2px,color:#1e3a8a
+    classDef proxyStyle fill:#bbf7d0,stroke:#15803d,stroke-width:2px,color:#14532d
+    classDef firefoxStyle fill:#fed7aa,stroke:#c2410c,stroke-width:2px,color:#7c2d12
+    classDef noteStyle fill:#fef9c3,stroke:#a16207,stroke-width:2px,color:#713f12
 ```
 
 #### Patch UE Pod with SOCKS5 Proxy
@@ -579,7 +794,53 @@ Access from Ubuntu desktop: `http://<openspeedtest-service-ip>`
 
 ### Traffic Flow Visualization
 ```mermaid
-[Traffic flow: Firefox → SOCKS5 → uesimtun0 → GTP-U → UPF → Internet - to be added]
+---
+config:
+  theme: neo
+  themeVariables:
+    primaryColor: '#fff'
+    primaryTextColor: '#1a1a1a'
+    primaryBorderColor: '#2563eb'
+    lineColor: '#475569'
+    secondaryColor: '#f1f5f9'
+    tertiaryColor: '#fef3c7'
+  look: classic
+---
+flowchart LR
+    Firefox["🦊 Firefox<br>(Ubuntu Desktop Pod)"] == HTTP/HTTPS<br>via SOCKS5 Proxy ==> SOCKS5["🔌 SOCKS5 Proxy<br>(ue-socks5:1080)"]
+    SOCKS5 == Routes through<br>Shared Namespace ==> UESimTun["📡 uesimtun0<br>(TUN Interface)<br>10.60.0.1"]
+    UESimTun == User Plane Traffic<br>(5G PDU Session) ==> GTPU["📦 GTP-U Tunnel<br>(Encapsulation)<br>gNB ↔ UPF"]
+    GTPU == "GTP-U Encapsulated<br>N3 Interface" ==> UPF["🚀 UPF<br>(User Plane Function)<br>10.100.50.233"]
+    UPF == Decapsulated Traffic<br>NAT &amp; Routing ==> N6["🌐 N6 Interface<br>(Data Network)<br>10.0.137.25"]
+    N6 == Public Internet<br>Access ==> Internet["🌍 Internet"]
+    Internet -. Response .-> N6
+    N6 -. "Re-encapsulate" .-> UPF
+    UPF -. "GTP-U Tunnel" .-> GTPU
+    GTPU -. Deliver to UE .-> UESimTun
+    UESimTun -. Forward to Proxy .-> SOCKS5
+    SOCKS5 -. Return to Browser .-> Firefox
+    Firefox -.-> Note1["💡 Traffic flows through 5G network<br>as if Firefox is a mobile device"]
+    GTPU -.-> Note2["📊 GTP-U adds ~8% overhead<br>for tunnel encapsulation"]
+    UPF -.-> Note3["🔒 UPF performs NAT on N6<br>translating UE IP to public IP"]
+     Firefox:::firefoxStyle
+     SOCKS5:::proxyStyle
+     UESimTun:::tunStyle
+     GTPU:::gtpuStyle
+     UPF:::upfStyle
+     N6:::n6Style
+     Internet:::internetStyle
+     Note1:::noteStyle
+     Note2:::noteStyle
+     Note3:::noteStyle
+    classDef firefoxStyle fill:#ff9500,stroke:#c2410c,stroke-width:4px,color:#7c2d12
+    classDef proxyStyle fill:#a78bfa,stroke:#7c3aed,stroke-width:4px,color:#5b21b6
+    classDef tunStyle fill:#60a5fa,stroke:#2563eb,stroke-width:4px,color:#1e40af
+    classDef gtpuStyle fill:#34d399,stroke:#059669,stroke-width:4px,color:#065f46
+    classDef upfStyle fill:#fbbf24,stroke:#d97706,stroke-width:4px,color:#92400e
+    classDef n6Style fill:#a3e635,stroke:#65a30d,stroke-width:4px,color:#3f6212
+    classDef internetStyle fill:#38bdf8,stroke:#0284c7,stroke-width:4px,color:#075985
+    classDef noteStyle fill:#fef9c3,stroke:#a16207,stroke-width:2px,stroke-dasharray: 5 5,color:#713f12
+
 ```
 
 **Complete Path:**
@@ -706,26 +967,6 @@ kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
 - [MicroK8s Documentation](https://microk8s.io/docs)
 - [Multus CNI](https://github.com/k8snetworkplumbingwg/multus-cni)
 
-### 3GPP Specifications
-
-- [TS 23.501](https://www.3gpp.org/DynaReport/23501.htm) - 5G System Architecture
-- [TS 29.244](https://www.3gpp.org/DynaReport/29244.htm) - PFCP Protocol
-- [TS 29.281](https://www.3gpp.org/DynaReport/29281.htm) - GTP-U Protocol
-- [TS 38.413](https://www.3gpp.org/DynaReport/38413.htm) - NGAP Protocol
-
-### Related Projects
-
-- [Cilium](https://cilium.io/) - eBPF-based networking and observability
-- [Calico](https://www.tigera.io/project-calico/) - Kubernetes networking
-- [Open5GS](https://open5gs.org/) - Alternative open-source 5G core
-- [OAI (OpenAirInterface)](https://openairinterface.org/) - 5G RAN/Core implementation
-
-### Community & Support
-
-- [free5GC Forum](https://forum.free5gc.org/)
-- [Kubernetes Slack](https://slack.k8s.io/) - #sig-network channel
-- [Telecom Infra Project](https://telecominfraproject.com/)
-
 ---
 
 ## License
@@ -734,15 +975,9 @@ This project documentation is provided as-is for educational purposes. Individua
 
 ---
 
-## Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/yourrepo/issues).
-
----
-
 ## Acknowledgments
 
-- **free5GC Team** - For the excellent open-source 5G core implementation
+- **free5GC** - For the excellent open-source 5G core implementation
 - **UERANSIM Project** - For the realistic RAN simulator
 - **Towards5GS** - For well-maintained Helm charts
 - **Kubernetes Community** - For the CNI ecosystem
