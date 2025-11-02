@@ -163,7 +163,7 @@ flowchart LR
 ✅ **Network Realism** - Mirrors geographic distribution in production  
 ✅ **Learning Value** - Master multi-cluster networking patterns
 
-![Multi-Cluster Topology](./images/topology.png)
+
 
 
 ---
@@ -194,11 +194,10 @@ flowchart LR
 | **VM3 (UPF)** | eth3 | N3 (UPF ↔ gNB) | 10.100.50.232/29 | 10.100.50.233 | GTP-U endpoint |
 | | eth1 | N4 (UPF ↔ SMF) | 10.100.50.240/29 | 10.100.50.241 | PFCP interface |
 | | eth2 | N6 (Data Network) | 10.0.137.0/24 | DHCP | Internet egress |
-```mermaid
-[Network topology diagram - to be added]
-```
 
----
+![Multi-Cluster Topology](./images/topology.png)
+
+
 
 ## Installation
 
