@@ -1,12 +1,13 @@
 # free5GC-multi-cluster-deployment
 # Deploying free5GC Across Three MicroK8s Clusters
+# Deploying free5GC Across Three MicroK8s Clusters
 
 > A Cloud-Native Networking Journey: Building a distributed 5G Core with Kubernetes, Multus CNI, and MACVLAN
 
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![MicroK8s](https://img.shields.io/badge/MicroK8s-FF6F00?style=for-the-badge&logo=ubuntu&logoColor=white)](https://microk8s.io/)
 [![Helm](https://img.shields.io/badge/Helm-0F1689?style=for-the-badge&logo=helm&logoColor=white)](https://helm.sh/)
-[![5G](https://img.shields.io/badge/5G%20Core-00A9E0?style=for-the-badge&logo=5g&logoColor=white)](https://www.free5gc.org/)
+[![free5GC](https://img.shields.io/badge/5G%20Core-00A9E0?style=for-the-badge&logo=5g&logoColor=white)](https://www.free5gc.org/)
 
 ---
 
@@ -14,23 +15,49 @@
 
 - [Overview](#overview)
 - [Architecture](#architecture)
+  - [Three-Cluster Design](#three-cluster-design)
+  - [Why Three Clusters](#why-three-clusters)
 - [Prerequisites](#prerequisites)
+  - [Hardware/VM Requirements](#hardwarevm-requirements)
+  - [Software Requirements](#software-requirements)
 - [Network Design](#network-design)
+  - [IP Addressing Scheme](#ip-addressing-scheme)
 - [Installation](#installation)
   - [MicroK8s Setup](#microk8s-setup)
   - [Multus CNI Configuration](#multus-cni-configuration)
   - [Control Plane Deployment](#control-plane-deployment)
   - [User Plane Deployment](#user-plane-deployment)
-  - [RAN Simulation (UERANSIM)](#ran-simulation-ueransim)
+  - [RAN Simulation UERANSIM](#ran-simulation-ueransim)
 - [Testing & Validation](#testing--validation)
+  - [Protocol Flow Overview](#protocol-flow-overview)
+  - [Control Plane Logs](#control-plane-logs)
+  - [RAN Simulation Logs](#ran-simulation-logs)
+  - [User Plane Connectivity Test](#user-plane-connectivity-test)
 - [Advanced Use Cases](#advanced-use-cases)
+  - [SOCKS5 Sidecar Proxy Pattern](#socks5-sidecar-proxy-pattern)
+  - [Ubuntu Desktop with VNC](#ubuntu-desktop-with-vnc)
+  - [Speed Test via 5G Network](#speed-test-via-5g-network)
 - [Lessons Learned](#lessons-learned)
+  - [Kubernetes Patterns Mastery](#kubernetes-patterns-mastery)
+  - [Networking Deep Dive](#networking-deep-dive)
+  - [Operational Challenges](#operational-challenges)
+  - [The Telecom Reality](#the-telecom-reality)
 - [Next Steps](#next-steps)
+  - [Phase 1 GitOps & CI/CD](#phase-1-gitops--cicd--in-progress)
+  - [Phase 2 True Cloud-Native Networking](#phase-2-true-cloud-native-networking--planned)
 - [Resources](#resources)
+  - [Official Documentation](#official-documentation)
+  - [3GPP Specifications](#3gpp-specifications)
+  - [Related Projects](#related-projects)
+  - [Community & Support](#community--support)
+- [License](#license)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
+- [Contact](#contact)
 
 ---
 
-## 🎯 Overview
+## Overview
 
 This project demonstrates the deployment of **free5GC**, an open-source 5G Core Network, across **three independent MicroK8s clusters**. Unlike typical Kubernetes tutorials, this deployment tackles real-world telecom challenges:
 
@@ -48,7 +75,7 @@ The evolution from 4G EPC to 5G Core represents a fundamental shift from monolit
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Three-Cluster Design
 ```mermaid
@@ -61,7 +88,7 @@ The evolution from 4G EPC to 5G Core represents a fundamental shift from monolit
 | **Cluster 2** | Control Plane | AMF, SMF, NRF, UDM, UDR, AUSF, PCF, NSSF, MongoDB |
 | **Cluster 3** | User Plane | UPF (User Plane Function) |
 
-### Why Three Clusters?
+### Why Three Clusters
 
 ✅ **Separation of Concerns** - Distinct responsibilities per cluster  
 ✅ **Failure Domain Isolation** - Crashes don't cascade  
@@ -74,7 +101,7 @@ The evolution from 4G EPC to 5G Core represents a fundamental shift from monolit
 
 ---
 
-## 📦 Prerequisites
+## Prerequisites
 
 ### Hardware/VM Requirements
 
@@ -93,7 +120,7 @@ The evolution from 4G EPC to 5G Core represents a fundamental shift from monolit
 
 ---
 
-## 🌐 Network Design
+## Network Design
 
 ### IP Addressing Scheme
 
@@ -112,7 +139,7 @@ The evolution from 4G EPC to 5G Core represents a fundamental shift from monolit
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### MicroK8s Setup
 
@@ -192,7 +219,7 @@ systemctl status promisc-ifaces
 ![Promiscuous Mode Status](./images/promisc-mode.png)
 *Systemd service ensuring promiscuous mode persistence*
 
-#### NetworkAttachmentDefinitions (NADs)
+#### NetworkAttachmentDefinitions NADs
 
 Example NAD for UPF:
 ```yaml
@@ -265,7 +292,7 @@ helm install free5gc-upf towards5gs/free5gc-upf \
   --values upf-values.yaml
 ```
 
-#### Critical: Enable IP Forwarding
+#### Critical Enable IP Forwarding
 
 Add to `upf-values.yaml`:
 ```yaml
@@ -285,7 +312,7 @@ securityContext:
 
 ---
 
-### RAN Simulation (UERANSIM)
+### RAN Simulation UERANSIM
 
 Deploy on **VM1 (UERANSIM cluster)**:
 ```bash
@@ -304,81 +331,13 @@ UERANSIM simulates:
 
 ---
 
-## 🧪 Testing & Validation
+## Testing & Validation
 
 ### Protocol Flow Overview
 
 Understanding the 5G protocol stack is crucial for debugging:
 ```mermaid
----
-config:
-  theme: dark
-  look: neo
-  layout: fixed
----
-flowchart LR
- subgraph ACCESS["(RAN)"]
-    direction TB
-        UE["UE  📱"]
-        gNB["gNB  🗼"]
-  end
- subgraph CORE_CTRL["5GC Control Plane  (free5GC NFs)"]
-    direction TB
-        AMF["AMF  🧭  <br>(Access Mobility function)"]
-        SMF["SMF ⚙️ <br>(Session Mgmt)"]
-        AUSF["AUSF 🔐  <br>(Authentication)"]
-        UDM["UDM authentication🔑  <br>(Subscriber Data)"]
-        UDR["UDR 🚀 <br>(User Data Repository)"]
-        PCF["PCF⚖️  <br>(Policy Control)"]
-        NSSF["NSSF 📊 <br>(Slice Selection)"]
-        NRF["NRF exposure🔍 <br>(NF Registry/Discovery)"]
-  end
- subgraph USER_PLANE["User Plane"]
-    direction TB
-        UPF["UPF 🚀 <br>(User Plane)"]
-  end
- subgraph DATA_NET["Data Network"]
-    direction TB
-        DN["DN / Internet 🌐"]
-  end
-    gNB -- "N2 (NG-C) NGAP" --> AMF
-    gNB -- "N3 (GTP-U)" --> UPF
-    AMF -- N11 --> SMF
-    SMF -- N4 (PFCP) --> UPF
-    UPF -- N6 --> DN
-    AMF -- N12 --> AUSF
-    AMF -- N13 --> UDM
-    AUSF -- N8 ---> UDM
-    UDM --- UDR
-    SMF -- N7 --> PCF
-    AMF -- N22 --> NSSF
-    AMF -. SBI (Register/Discover) .-> NRF
-    SMF -. SBI (Register/Discover) .-> NRF
-    AUSF -. SBI .-> NRF
-    UDM -. SBI .-> NRF
-    PCF -. SBI .-> NRF
-    NSSF -. SBI .-> NRF
-    UE -- Radio (NR) --> gNB
-    UE -- N1 (NAS) --> AMF
-     UE:::radio
-     gNB:::radio
-     AMF:::box
-     SMF:::box
-     AUSF:::box
-     UDM:::box
-     UDR:::box
-     PCF:::box
-     NSSF:::box
-     NRF:::box
-     UPF:::upf
-     DN:::dn
-    classDef domain fill:#0d1b2a,stroke:#0d1b2a,color:#fff,stroke-width:0px
-    classDef box fill:#e6f0ff,stroke:#2c5282,stroke-width:1px,color:#122
-    classDef upf fill:#fff5e6,stroke:#b7791f,stroke-width:1px,color:#241e0f
-    classDef dn fill:#e6fffa,stroke:#2c7a7b,stroke-width:1px,color:#123
-    classDef radio fill:#f0fff4,stroke:#2f855a,stroke-width:1px,color:#123
-    classDef sbi stroke-dasharray: 3 3
-
+[Protocol sequence diagram: UE → gNB → AMF → SMF → UPF → Internet - to be added]
 ```
 
 ### Key Protocols
@@ -475,7 +434,7 @@ watch -n 1 'ip -s link show upfgtp'
 
 ---
 
-## 🚀 Advanced Use Cases
+## Advanced Use Cases
 
 ### SOCKS5 Sidecar Proxy Pattern
 
@@ -582,7 +541,7 @@ kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
 
 ---
 
-## 💡 Lessons Learned
+## Lessons Learned
 
 ### Kubernetes Patterns Mastery
 
@@ -643,15 +602,15 @@ kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
 
 ---
 
-## 🔮 Next Steps
+## Next Steps
 
-### Phase 1: GitOps & CI/CD ✅ (In Progress)
+### Phase 1 GitOps & CI/CD ✅ (In Progress)
 
 - **Argo CD** for automated multi-cluster deployments
 - **GitOps practices** for configuration management
 - **Prometheus & Grafana** for monitoring and alerting
 
-### Phase 2: True Cloud-Native Networking 🚀 (Planned)
+### Phase 2 True Cloud-Native Networking 🚀 (Planned)
 
 **Cilium with eBPF**
 - Replace Multus + MACVLAN with eBPF-based networking
@@ -679,7 +638,7 @@ kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
 
 ---
 
-## 📚 Resources
+## Resources
 
 ### Official Documentation
 
@@ -711,19 +670,19 @@ kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
 
 ---
 
-## 📝 License
+## License
 
 This project documentation is provided as-is for educational purposes. Individual components (free5GC, UERANSIM, etc.) maintain their respective licenses.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/yourrepo/issues).
 
 ---
 
-## ✨ Acknowledgments
+## Acknowledgments
 
 - **free5GC Team** - For the excellent open-source 5G core implementation
 - **UERANSIM Project** - For the realistic RAN simulator
@@ -732,7 +691,7 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 ---
 
-## 📬 Contact
+## Contact
 
 **Your Name**
 - LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
