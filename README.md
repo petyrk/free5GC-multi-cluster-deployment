@@ -56,6 +56,7 @@
 ---
 
 ## Overview
+![Banner](./images/coverpage.png)
 
 This project demonstrates the deployment of **free5GC**, an open-source 5G Core Network, across **three independent MicroK8s clusters**. Unlike typical Kubernetes tutorials, this deployment tackles real-world telecom challenges:
 
@@ -163,13 +164,15 @@ flowchart LR
 ✅ **Learning Value** - Master multi-cluster networking patterns
 
 ![Multi-Cluster Topology](./images/topology.png)
-*Physical cluster deployment on EVE-NG*
+
 
 ---
 
 ## Prerequisites
 
 ### Hardware/VM Requirements
+![EVENG Topology](./images/eveng.png)
+*Physical cluster deployment on EVE-NG*
 
 | VM | vCPUs | RAM | Disk | OS |
 |----|-------|-----|------|-----|
