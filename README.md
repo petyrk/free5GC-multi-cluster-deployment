@@ -849,16 +849,6 @@ This project documentation is provided as-is for educational purposes. Individua
 - **Kubernetes Community** - For the CNI ecosystem
 
 ---
-
-## Contact
-
-**Your Name**
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
-
----
-
 <div align="center">
 
 </div>
