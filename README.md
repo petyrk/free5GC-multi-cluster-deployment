@@ -310,7 +310,75 @@ UERANSIM simulates:
 
 Understanding the 5G protocol stack is crucial for debugging:
 ```mermaid
-[Protocol sequence diagram: UE → gNB → AMF → SMF → UPF → Internet - to be added]
+---
+config:
+  theme: dark
+  look: neo
+  layout: fixed
+---
+flowchart LR
+ subgraph ACCESS["(RAN)"]
+    direction TB
+        UE["UE  📱"]
+        gNB["gNB  🗼"]
+  end
+ subgraph CORE_CTRL["5GC Control Plane  (free5GC NFs)"]
+    direction TB
+        AMF["AMF  🧭  <br>(Access Mobility function)"]
+        SMF["SMF ⚙️ <br>(Session Mgmt)"]
+        AUSF["AUSF 🔐  <br>(Authentication)"]
+        UDM["UDM authentication🔑  <br>(Subscriber Data)"]
+        UDR["UDR 🚀 <br>(User Data Repository)"]
+        PCF["PCF⚖️  <br>(Policy Control)"]
+        NSSF["NSSF 📊 <br>(Slice Selection)"]
+        NRF["NRF exposure🔍 <br>(NF Registry/Discovery)"]
+  end
+ subgraph USER_PLANE["User Plane"]
+    direction TB
+        UPF["UPF 🚀 <br>(User Plane)"]
+  end
+ subgraph DATA_NET["Data Network"]
+    direction TB
+        DN["DN / Internet 🌐"]
+  end
+    gNB -- "N2 (NG-C) NGAP" --> AMF
+    gNB -- "N3 (GTP-U)" --> UPF
+    AMF -- N11 --> SMF
+    SMF -- N4 (PFCP) --> UPF
+    UPF -- N6 --> DN
+    AMF -- N12 --> AUSF
+    AMF -- N13 --> UDM
+    AUSF -- N8 ---> UDM
+    UDM --- UDR
+    SMF -- N7 --> PCF
+    AMF -- N22 --> NSSF
+    AMF -. SBI (Register/Discover) .-> NRF
+    SMF -. SBI (Register/Discover) .-> NRF
+    AUSF -. SBI .-> NRF
+    UDM -. SBI .-> NRF
+    PCF -. SBI .-> NRF
+    NSSF -. SBI .-> NRF
+    UE -- Radio (NR) --> gNB
+    UE -- N1 (NAS) --> AMF
+     UE:::radio
+     gNB:::radio
+     AMF:::box
+     SMF:::box
+     AUSF:::box
+     UDM:::box
+     UDR:::box
+     PCF:::box
+     NSSF:::box
+     NRF:::box
+     UPF:::upf
+     DN:::dn
+    classDef domain fill:#0d1b2a,stroke:#0d1b2a,color:#fff,stroke-width:0px
+    classDef box fill:#e6f0ff,stroke:#2c5282,stroke-width:1px,color:#122
+    classDef upf fill:#fff5e6,stroke:#b7791f,stroke-width:1px,color:#241e0f
+    classDef dn fill:#e6fffa,stroke:#2c7a7b,stroke-width:1px,color:#123
+    classDef radio fill:#f0fff4,stroke:#2f855a,stroke-width:1px,color:#123
+    classDef sbi stroke-dasharray: 3 3
+
 ```
 
 ### Key Protocols
