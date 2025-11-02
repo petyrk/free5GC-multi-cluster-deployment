@@ -1,0 +1,118 @@
+#
+# Software Name : towards5gs-helm
+# SPDX-FileCopyrightText: Copyright (c) 2021 Orange
+# SPDX-License-Identifier: Apache-2.0
+#
+# This software is distributed under the Apache License 2.0,
+# the text of which is available at todo
+# or see the "LICENSE" file for more details.
+#
+# Author: Abderaouf KHICHANE, Ilhem FAJJARI, Ayoub BOUSSELMI
+# Software description: An open-source project providing Helm charts to deploy 5G components (Core + RAN) on top of Kubernetes
+#
+# Default values for free5gc-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  name: free5gc
+  userPlaneArchitecture: single
+  nrf:
+    service:
+      name: nrf-nnrf
+      type: ClusterIP
+      port: "8000"
+      nodePort: "30800"
+  sbi:
+    scheme: http
+  amf:
+    n2if:
+      ipAddress: 10.100.50.249
+    service:
+      ngap:
+        enabled: false
+        name: amf-n2
+        port: 38412
+        nodeport: 31412
+        protocol: SCTP
+        type: NodePort
+  smf:
+    n4if:
+      ipAddress: 10.100.50.244
+  # Global network parameters
+  n2network:
+    enabled: true
+    name: n2network
+    type: macvlan
+    masterIf: eth0
+    subnetIP: 10.100.50.248
+    cidr: 29
+    gatewayIP: 10.100.50.254
+    excludeIP: 10.100.50.254
+  n3network:
+    enabled: true
+    name: n3network
+    type: macvlan
+    masterIf: eth3
+    subnetIP: 10.100.50.232
+    cidr: 29
+    gatewayIP: 10.100.50.238
+    excludeIP: 10.100.50.238
+  n4network:
+    enabled: true
+    name: n4network
+    type: macvlan
+    masterIf: eth1
+    subnetIP: 10.100.50.240
+    cidr: 29
+    gatewayIP: 10.100.50.246
+    excludeIP: 10.100.50.246
+  n6network:
+    enabled: true
+    name: n6network
+    type: ipvlan
+    masterIf: eth2
+    subnetIP: 10.0.137.0
+    cidr: 24
+    gatewayIP: 10.0.137.254
+    excludeIP: 10.0.137.254
+
+# Only deploy UPF
+deployMongoDb: false
+deployAmf: false
+deployAusf: false
+deployN3iwf: false
+deployNrf: false
+deployNssf: false
+deployPcf: false
+deploySmf: false
+deployUdm: false
+deployUdr: false
+deployUpf: true
+deployWebui: false
+deployDbPython: false
+
+# UPF configuration at root level
+upf:
+  gtpForwarder: gtp5g
+  interfaces:
+    - name: n3
+      type: N3
+      addr: 10.100.50.233
+    - name: n4
+      type: N4
+      addr: 10.100.50.241
+    - name: n6
+      type: N6
+      addr: 10.0.137.12
+  podSecurityContext:
+    sysctls:
+      - name: net.ipv4.ip_forward
+        value: "1"
+  securityContext:
+    privileged: true
+    capabilities:
+      add: 
+        - NET_ADMIN
+
+
