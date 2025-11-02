@@ -236,10 +236,6 @@ alias helm='microk8s helm3'
 microk8s status
 kubectl get nodes
 ```
-
-![MicroK8s Status](./images/microk8s-status.png)
-*Successful MicroK8s installation*
-
 ---
 
 ### Multus CNI Configuration
@@ -378,9 +374,6 @@ sudo systemctl start promisc-ifaces
 systemctl status promisc-ifaces
 ```
 
-![Promiscuous Mode Status](./images/promisc-mode.png)
-*Systemd service ensuring promiscuous mode persistence*
-
 #### NetworkAttachmentDefinitions NADs
 
 Example NAD for UPF:
@@ -416,7 +409,9 @@ Navigate to: `http://<CONTROL_PLANE_IP>:30500`
 - Username: `admin`
 - Password: `free5gc`
 
-![free5GC WebUI](./images/free5gc-webui.png)
+![free5GC WebUI](./images/free5gc-login.png)
+![free5GC WebUI](./images/webuiamf.png)
+![free5GC WebUI](./images/webuismf.png)
 *WebUI for subscriber provisioning*
 
 #### Verify Deployment
@@ -469,8 +464,6 @@ securityContext:
       - NET_ADMIN
 ```
 
-![UPF Pod Status](./images/upf-pod.png)
-*UPF pod with multiple network interfaces*
 
 ---
 
@@ -487,9 +480,6 @@ helm install ueransim towards5gs/ueransim \
 UERANSIM simulates:
 - **gNodeB** (N2/N3 interfaces)
 - **UE** (User Equipment with registration and session establishment)
-
-![UERANSIM Pods](./images/ueransim-pods.png)
-*gNB and UE pods running*
 
 ---
 
@@ -573,7 +563,7 @@ Note over UE,UPF: Data flows through established GTP-U tunnel
 kubectl logs -n free5gc <amf-pod-name> --tail=50
 ```
 
-![AMF Logs](./images/amf-logs.png)
+![AMF Logs](./images/AMFlogs.png)
 *AMF successfully handling UE registration*
 
 **Key Log Entries:**
@@ -587,7 +577,7 @@ kubectl logs -n free5gc <amf-pod-name> --tail=50
 kubectl logs -n free5gc <smf-pod-name> --tail=50
 ```
 
-![SMF Logs](./images/smf-logs.png)
+![SMF Logs](./images/SMFlogs.png)
 *SMF creating PDU session and selecting UPF*
 
 **Key Log Entries:**
@@ -601,7 +591,7 @@ kubectl logs -n free5gc <smf-pod-name> --tail=50
 kubectl logs -n free5gc <upf-pod-name> --tail=50
 ```
 
-![UPF Logs](./images/upf-logs.png)
+![UPF Logs](./images/upflogs.png)
 *UPF establishing GTP-U tunnel*
 
 **Key Log Entries:**
@@ -616,7 +606,7 @@ kubectl logs -n free5gc <upf-pod-name> --tail=50
 kubectl logs -n ueran <ue-pod-name> --tail=50
 ```
 
-![UE Logs](./images/ue-logs.png)
+![UE Logs](./images/uelogs.png)
 *UE registration and PDU session establishment*
 
 #### gNB Logs
@@ -624,7 +614,7 @@ kubectl logs -n ueran <ue-pod-name> --tail=50
 kubectl logs -n ueran <gnb-pod-name> --tail=50
 ```
 
-![gNB Logs](./images/gnb-logs.png)
+![gNB Logs](./images/gNBlogs.png)
 *gNB connecting to AMF and establishing N3 tunnel*
 
 ### User Plane Connectivity Test
@@ -635,7 +625,7 @@ kubectl exec -it -n ueran <ue-pod-name> -- bash
 ping -I uesimtun0 8.8.8.8
 ```
 
-![Ping Test](./images/ping-test.png)
+![Ping Test](./images/ueconnectivitylogs.png)
 *Successful ping through 5G network*
 
 #### Verify GTP-U Traffic
@@ -646,7 +636,7 @@ kubectl exec -it -n free5gc <upf-pod-name> -- bash
 watch -n 1 'ip -s link show upfgtp'
 ```
 
-![GTP Counters](./images/gtp-counters.png)
+![GTP Counters](./images/upfgtp-stats.png)
 *RX/TX counters incrementing, confirming tunnel traffic*
 
 ---
@@ -754,8 +744,6 @@ spec:
     targetPort: 1080
   type: ClusterIP
 ```
-
-![SOCKS5 Service](./images/socks5-service.png)
 *ClusterIP service exposing SOCKS5 proxy*
 
 ### Ubuntu Desktop with VNC
@@ -767,7 +755,7 @@ kubectl apply -f ubuntudesktop-vnc.yaml  # on UERANSIM cluster
 
 **Access via VNC:** `vnc://<UERANSIM_IP>:30590`
 
-![Ubuntu Desktop](./images/ubuntu-desktop.png)
+![Ubuntu Desktop](./images/ubuntuvnc.png)
 *Ubuntu desktop accessed via VNC*
 
 #### Configure Firefox Proxy
@@ -779,7 +767,7 @@ kubectl apply -f ubuntudesktop-vnc.yaml  # on UERANSIM cluster
 5. Port: `1080`
 6. Select **SOCKS v5**
 
-![Firefox Proxy Config](./images/firefox-proxy.png)
+![Firefox Proxy Config](./images/proxy-set.png)
 *Configuring SOCKS5 proxy in Firefox*
 
 ### Speed Test via 5G Network
@@ -857,7 +845,7 @@ kubectl exec -it -n free5gc <upf-pod-name> -- tcpdump -i n3 -n port 2152 -w /tmp
 kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
 ```
 
-![Wireshark Capture](./images/wireshark-gtp.png)
+![Wireshark Capture](./images/wireshark.png)
 *GTP-U packets between gNB and UPF*
 
 ---
