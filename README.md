@@ -35,23 +35,11 @@
   - [SOCKS5 Sidecar Proxy Pattern](#socks5-sidecar-proxy-pattern)
   - [Ubuntu Desktop with VNC](#ubuntu-desktop-with-vnc)
   - [Speed Test via 5G Network](#speed-test-via-5g-network)
-- [Lessons Learned](#lessons-learned)
-  - [Kubernetes Patterns Mastery](#kubernetes-patterns-mastery)
-  - [Networking Deep Dive](#networking-deep-dive)
-  - [Operational Challenges](#operational-challenges)
-  - [The Telecom Reality](#the-telecom-reality)
-- [Next Steps](#next-steps)
-  - [Phase 1 GitOps & CI/CD](#phase-1-gitops--cicd--in-progress)
-  - [Phase 2 True Cloud-Native Networking](#phase-2-true-cloud-native-networking--planned)
 - [Resources](#resources)
   - [Official Documentation](#official-documentation)
-  - [3GPP Specifications](#3gpp-specifications)
-  - [Related Projects](#related-projects)
-  - [Community & Support](#community--support)
 - [License](#license)
-- [Contributing](#contributing)
 - [Acknowledgments](#acknowledgments)
-- [Contact](#contact)
+
 
 ---
 
