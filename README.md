@@ -31,7 +31,7 @@
   - [Control Plane Logs](#control-plane-logs)
   - [RAN Simulation Logs](#ran-simulation-logs)
   - [User Plane Connectivity Test](#user-plane-connectivity-test)
-- [Advanced Use Cases](#advanced-use-cases)
+- [Advanced test Case](#advanced-test-case)
   - [SOCKS5 Sidecar Proxy Pattern](#socks5-sidecar-proxy-pattern)
   - [Ubuntu Desktop with VNC](#ubuntu-desktop-with-vnc)
   - [Speed Test via 5G Network](#speed-test-via-5g-network)
