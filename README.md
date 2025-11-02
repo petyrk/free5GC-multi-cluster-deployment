@@ -605,7 +605,7 @@ kubectl logs -n ueran <gnb-pod-name> --tail=50
 
 #### Ping via uesimtun0
 ```bash
-kubectl exec -it -n ueran <ue-pod-name> -- bash
+kubectl exec -it -n ueran <ue-pod-name> -- sh
 ping -I uesimtun0 8.8.8.8
 ```
 
@@ -616,7 +616,7 @@ ping -I uesimtun0 8.8.8.8
 
 Monitor UPF GTP interface:
 ```bash
-kubectl exec -it -n free5gc <upf-pod-name> -- bash
+kubectl exec -it -n free5gc <upf-pod-name> -- sh
 watch -n 1 'ip -s link show upfgtp'
 ```
 
@@ -816,19 +816,7 @@ flowchart LR
     classDef noteStyle fill:#fef9c3,stroke:#a16207,stroke-width:2px,stroke-dasharray: 5 5,color:#713f12
 
 ```
-
-**Complete Path:**
-```
-Firefox → SOCKS5 (ue-service:1080) → uesimtun0 (10.60.0.1) → 
-GTP-U Tunnel → UPF (10.100.50.233) → N6 Interface → Internet
-```
-
 ### Packet Capture on N3 Interface
-```bash
-kubectl exec -it -n free5gc <upf-pod-name> -- tcpdump -i n3 -n port 2152 -w /tmp/gtp.pcap
-kubectl cp free5gc/<upf-pod-name>:/tmp/gtp.pcap ./gtp.pcap
-```
-
 ![Wireshark Capture](./images/wireshark.png)
 *GTP-U packets between gNB and UPF*
 
@@ -872,9 +860,5 @@ This project documentation is provided as-is for educational purposes. Individua
 ---
 
 <div align="center">
-
-**⭐ If you found this project helpful, please give it a star! ⭐**
-
-Made with ❤️ and ☕ for the cloud-native telecom community
 
 </div>
