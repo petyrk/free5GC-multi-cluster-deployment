@@ -18,7 +18,6 @@
   - [Why Three Clusters](#why-three-clusters)
 - [Prerequisites](#prerequisites)
   - [Hardware/VM Requirements](#hardwarevm-requirements)
-  - [Software Requirements](#software-requirements)
 - [Network Design](#network-design)
   - [IP Addressing Scheme](#ip-addressing-scheme)
 - [Installation](#installation)
@@ -65,21 +64,89 @@ This project demonstrates the deployment of **free5GC**, an open-source 5G Core 
 - 🏗️ **Multi-cluster architecture** mirroring production 5G deployments
 - 📡 **Complex protocol stacks** (NGAP, PFCP, GTP-U)
 
-### Why This Matters
+### 5G core architecture
 
-The evolution from 4G EPC to 5G Core represents a fundamental shift from monolithic VNFs to cloud-native microservices. This project bridges the gap between traditional telecom and modern Kubernetes practices.
+The evolution from 4G EPC to 5G Core represents a fundamental shift from monolithic VNFs to cloud-native microservices. 
 
-![5G Core Architecture](./images/5gc-architecture.png)
-*5G Core Network Functions and 3GPP Interfaces*
+
+```mermaid
+---
+config:
+  theme: dark
+  look: neo
+  layout: fixed
+---
+flowchart LR
+ subgraph ACCESS["(RAN)"]
+    direction TB
+        UE["UE  📱"]
+        gNB["gNB  🗼"]
+  end
+ subgraph CORE_CTRL["5GC Control Plane  (free5GC NFs)"]
+    direction TB
+        AMF["AMF  🧭  <br>(Access Mobility function)"]
+        SMF["SMF ⚙️ <br>(Session Mgmt)"]
+        AUSF["AUSF 🔐  <br>(Authentication)"]
+        UDM["UDM authentication🔑  <br>(Subscriber Data)"]
+        UDR["UDR 🚀 <br>(User Data Repository)"]
+        PCF["PCF⚖️  <br>(Policy Control)"]
+        NSSF["NSSF 📊 <br>(Slice Selection)"]
+        NRF["NRF exposure🔍 <br>(NF Registry/Discovery)"]
+  end
+ subgraph USER_PLANE["User Plane"]
+    direction TB
+        UPF["UPF 🚀 <br>(User Plane)"]
+  end
+ subgraph DATA_NET["Data Network"]
+    direction TB
+        DN["DN / Internet 🌐"]
+  end
+    gNB -- "N2 (NG-C) NGAP" --> AMF
+    gNB -- "N3 (GTP-U)" --> UPF
+    AMF -- N11 --> SMF
+    SMF -- N4 (PFCP) --> UPF
+    UPF -- N6 --> DN
+    AMF -- N12 --> AUSF
+    AMF -- N13 --> UDM
+    AUSF -- N8 ---> UDM
+    UDM --- UDR
+    SMF -- N7 --> PCF
+    AMF -- N22 --> NSSF
+    AMF -. SBI (Register/Discover) .-> NRF
+    SMF -. SBI (Register/Discover) .-> NRF
+    AUSF -. SBI .-> NRF
+    UDM -. SBI .-> NRF
+    PCF -. SBI .-> NRF
+    NSSF -. SBI .-> NRF
+    UE -- Radio (NR) --> gNB
+    UE -- N1 (NAS) --> AMF
+     UE:::radio
+     gNB:::radio
+     AMF:::box
+     SMF:::box
+     AUSF:::box
+     UDM:::box
+     UDR:::box
+     PCF:::box
+     NSSF:::box
+     NRF:::box
+     UPF:::upf
+     DN:::dn
+    classDef domain fill:#0d1b2a,stroke:#0d1b2a,color:#fff,stroke-width:0px
+    classDef box fill:#e6f0ff,stroke:#2c5282,stroke-width:1px,color:#122
+    classDef upf fill:#fff5e6,stroke:#b7791f,stroke-width:1px,color:#241e0f
+    classDef dn fill:#e6fffa,stroke:#2c7a7b,stroke-width:1px,color:#123
+    classDef radio fill:#f0fff4,stroke:#2f855a,stroke-width:1px,color:#123
+    classDef sbi stroke-dasharray: 3 3
+```
+  *5G Core Network Functions and 3GPP Interfaces*
 
 ---
 
 ## Architecture
 
 ### Three-Cluster Design
-```mermaid
-[Mermaid diagram showing three clusters - to be added]
-```
+
 
 | Cluster | Role | Components |
 |---------|------|------------|
@@ -110,14 +177,6 @@ The evolution from 4G EPC to 5G Core represents a fundamental shift from monolit
 | VM2 (Control Plane) | 4 | 8GB | 40GB | Ubuntu 20.04 |
 | VM3 (UPF) | 2 | 4GB | 20GB | Ubuntu 20.04 |
 
-### Software Requirements
-
-- **MicroK8s** 1.28+
-- **Helm** 3.x
-- **Multus CNI** 3.x
-- **Git**, **curl**, **net-tools**
-
----
 
 ## Network Design
 
