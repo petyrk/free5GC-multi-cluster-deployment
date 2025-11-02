@@ -1,13 +1,12 @@
 # free5GC-multi-cluster-deployment
 # Deploying free5GC Across Three MicroK8s Clusters
-# Deploying free5GC Across Three MicroK8s Clusters
 
-> A Cloud-Native Networking Journey: Building a distributed 5G Core with Kubernetes, Multus CNI, and MACVLAN
+
 
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![MicroK8s](https://img.shields.io/badge/MicroK8s-FF6F00?style=for-the-badge&logo=ubuntu&logoColor=white)](https://microk8s.io/)
 [![Helm](https://img.shields.io/badge/Helm-0F1689?style=for-the-badge&logo=helm&logoColor=white)](https://helm.sh/)
-[![free5GC](https://img.shields.io/badge/5G%20Core-00A9E0?style=for-the-badge&logo=5g&logoColor=white)](https://www.free5gc.org/)
+[![free5GC](https://img.shields.io/badge/free5G%20Core-00A9E0?style=for-the-badge&logo=5g&logoColor=white)](https://www.free5gc.org/)
 
 ---
 
