@@ -162,7 +162,7 @@ flowchart LR
 ✅ **Network Realism** - Mirrors geographic distribution in production  
 ✅ **Learning Value** - Master multi-cluster networking patterns
 
-![Multi-Cluster Topology](__images__/topology.png)
+![Multi-Cluster Topology](./images/topology.png)
 *Physical cluster deployment on EVE-NG*
 
 ---
