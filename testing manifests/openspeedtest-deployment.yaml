@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openspeedtest
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openspeedtest
+  template:
+    metadata:
+      labels:
+        app: openspeedtest
+    spec:
+      containers:
+      - name: openspeedtest
+        image: openspeedtest/latest
+        ports:
+        - containerPort: 3000   # must match the container's actual listening port
+        # Optional: force traffic through uesimtun0
+        # command: ["sh", "-c", "ip route add default dev uesimtun0 && /start.sh"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openspeedtest
+  namespace: apps
+spec:
+  selector:
+    app: openspeedtest
+  type: NodePort
+  ports:
+  - name: http
+    port: 3000         # this is the port you access via service
+    targetPort: 3000   # containerPort
+    nodePort: 30808
+    protocol: TCP
