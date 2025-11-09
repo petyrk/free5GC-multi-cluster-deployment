@@ -556,7 +556,7 @@ kubectl logs -n free5gc <smf-pod-name> --tail=50
 - ✅ Create SM Context Request received
 - ✅ UPF selected (10.100.50.241)
 - ✅ PFCP Session Establishment successful
-- ✅ UE IP allocated (10.60.0.1)
+- ✅ UE IP allocated (10.1.0.1)
 
 #### UPF Logs
 ```bash
