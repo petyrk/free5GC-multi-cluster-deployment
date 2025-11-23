@@ -104,7 +104,7 @@ upf:
       addr: 10.100.50.241
     - name: n6
       type: N6
-      addr: 10.0.137.12
+      addr: 10.0.137.13
   podSecurityContext:
     sysctls:
       - name: net.ipv4.ip_forward
